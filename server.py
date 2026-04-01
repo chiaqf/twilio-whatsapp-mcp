@@ -68,20 +68,22 @@ def _handle_error(e: Exception) -> str:
     },
 )
 async def send_whatsapp(
-    to: str, content_sid: str, content_variables: str | None = None
+    to: str, content_sid: str, content_variables: dict | str | None = None
 ) -> str:
     """Send a WhatsApp message using a Content Template.
 
     Args:
         to: Recipient phone number in E.164 format (e.g. +60126021369).
         content_sid: Content Template SID starting with HX.
-        content_variables: Optional JSON object mapping template variable positions
-            to values (e.g. '{"1": "John", "2": "Order ready"}').
+        content_variables: Optional JSON object or string mapping template variable
+            positions to values (e.g. {"1": "John", "2": "Order ready"}).
 
     Returns:
         JSON with the message SID and status on success, or an error string.
     """
     try:
+        if content_variables and isinstance(content_variables, dict):
+            content_variables = json.dumps(content_variables)
         payload = {
             "To": f"whatsapp:{to}",
             "From": f"whatsapp:{WHATSAPP_FROM}",
@@ -115,7 +117,7 @@ async def send_whatsapp(
     },
 )
 async def send_bulk_messages(
-    recipients: list[str], content_sid: str, content_variables: str | None = None
+    recipients: list[str], content_sid: str, content_variables: dict | str | None = None
 ) -> str:
     """Send the same Content Template to multiple WhatsApp recipients.
 
@@ -127,6 +129,8 @@ async def send_bulk_messages(
     Returns:
         JSON with results for each recipient (message SID or error).
     """
+    if content_variables and isinstance(content_variables, dict):
+        content_variables = json.dumps(content_variables)
     results = []
     for number in recipients:
         try:
